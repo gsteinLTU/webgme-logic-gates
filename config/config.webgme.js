@@ -23,5 +23,10 @@ config.requirejsPaths = {
 
 
 config.mongo.uri = 'mongodb://127.0.0.1:27017/webgme_logic_gates';
+
+config.seedProjects.enable = true
+config.seedProjects.defaultProject = 'LogicGates'
+config.seedProjects.basePaths = ['seeds']
+
 validateConfig(config);
 module.exports = config;
