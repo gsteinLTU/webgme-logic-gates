@@ -122,13 +122,13 @@ define([
             portInstance = ports[leftPorts[i]];
             this.$leftPorts.append(portInstance.$el);
             portInstance.updateOrientation(true);
-            portInstance.updateTop(PORT_TOP_PADDING + i * PORT_HEIGHT);
+            portInstance.updateTop( `${(i + 1) * DEFAULT_SVG_DEFAULT_HEIGHT / (leftPorts.length + 1) - PORT_HEIGHT / 2}px` );
+            portInstance.$el.css('position', 'absolute');
         }
         this.$leftPorts.css('height', leftPorts.length * PORT_HEIGHT);
         this.$leftPorts.find('.port > .title').css('left', TITLE_PADDING);
         this.$leftPorts.find('.port > .title').css('width', this._portContainerWidth - TITLE_PADDING);
         this.$leftPorts.find('.port > .icon').css('left', - PORT_WIDTH);
-
         this.$leftPorts.find('.port > .' +
             DiagramDesignerWidgetConstants.CONNECTOR_CLASS).css('left', -9);
 
@@ -136,7 +136,7 @@ define([
             portInstance = ports[rightPorts[i]];
             this.$rightPorts.append(portInstance.$el);
             portInstance.updateOrientation(false);
-            portInstance.updateTop(PORT_TOP_PADDING + i * PORT_HEIGHT);
+            portInstance.updateTop( `${(i + 1) * DEFAULT_SVG_DEFAULT_HEIGHT / (rightPorts.length + 1) - PORT_HEIGHT / 2}px` );
         }
         this.$rightPorts.css('height', rightPorts.length * PORT_HEIGHT);
         this.$rightPorts.find('.port > .title').css('width', this._portContainerWidth - TITLE_PADDING);
