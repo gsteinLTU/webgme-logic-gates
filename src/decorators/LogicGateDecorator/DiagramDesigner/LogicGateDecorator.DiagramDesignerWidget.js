@@ -1,53 +1,76 @@
-/*globals define, _, $*/
+/*globals define, $, _*/
+/*jshint browser: true*/
 
 /**
  * @author rkereskenyi / https://github.com/rkereskenyi
+ * @author nabana / https://github.com/nabana
  */
+
 
 define([
     'js/Constants',
     'js/NodePropertyNames',
-    'js/Widgets/DiagramDesigner/DiagramDesignerWidget.DecoratorBase',
-    'text!./LogicGateDecorator.DiagramDesignerWidget.html',
-    'css!./LogicGateDecorator.DiagramDesignerWidget.css'
-], function (CONSTANTS, nodePropertyNames, DiagramDesignerWidgetDecoratorBase, LogicGateDecoratorTemplate) {
+    'js/Widgets/DiagramDesigner/DiagramDesignerWidget.DecoratorBaseWithDragPointerHelpers',
+    'js/Widgets/DiagramDesigner/DiagramDesignerWidget.Constants',
+    'text!../Core/LogicGateDecorator.html',
+    './LogicGateDecorator.Core',
+    'css!./LogicGateDecorator.DiagramDesignerWidget'
+], function (CONSTANTS,
+             nodePropertyNames,
+             DiagramDesignerWidgetDecoratorBase,
+             DiagramDesignerWidgetConstants,
+             LogicGateDecoratorTemplate,
+             LogicGateDecoratorCore) {
 
     'use strict';
 
-    var LogicGateDecorator,
-        __parent__ = DiagramDesignerWidgetDecoratorBase,
-        __parent_proto__ = DiagramDesignerWidgetDecoratorBase.prototype,
-        DECORATOR_ID = 'LogicGateDecorator';
+    var LogicGateDecoratorDiagramDesignerWidget,
+        DECORATOR_ID = 'LogicGateDecoratorDiagramDesignerWidget';
 
-    LogicGateDecorator = function (options) {
+    LogicGateDecoratorDiagramDesignerWidget = function (options) {
         var opts = _.extend({}, options);
 
-        __parent__.apply(this, [opts]);
+        DiagramDesignerWidgetDecoratorBase.apply(this, [opts]);
+        LogicGateDecoratorCore.apply(this, [opts]);
 
-        this.name = '';
+        this._initializeVariables({connectors: true});
 
-        this.logger.debug('LogicGateDecorator ctor');
+        this._selfPatterns = {};
+
+        this.logger.debug('LogicGateDecoratorDiagramDesignerWidget ctor');
     };
 
-    _.extend(LogicGateDecorator.prototype, __parent_proto__);
-    LogicGateDecorator.prototype.DECORATORID = DECORATOR_ID;
+    /************************ INHERITANCE *********************/
+    _.extend(LogicGateDecoratorDiagramDesignerWidget.prototype, DiagramDesignerWidgetDecoratorBase.prototype);
+    _.extend(LogicGateDecoratorDiagramDesignerWidget.prototype, LogicGateDecoratorCore.prototype);
 
-    /*********************** OVERRIDE DiagramDesignerWidgetDecoratorBase MEMBERS **************************/
+    /**************** OVERRIDE INHERITED / EXTEND ****************/
 
-    LogicGateDecorator.prototype.$DOMBase = $(LogicGateDecoratorTemplate);
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    LogicGateDecoratorDiagramDesignerWidget.prototype.DECORATORID = DECORATOR_ID;
 
-    LogicGateDecorator.prototype.on_addTo = function () {
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    LogicGateDecoratorDiagramDesignerWidget.prototype.$DOMBase = $(LogicGateDecoratorTemplate);
+
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    //jshint camelcase: false
+    LogicGateDecoratorDiagramDesignerWidget.prototype.on_addTo = function () {
         var self = this;
 
-        this._renderName();
+        this._renderContent();
 
         // set title editable on double-click
-        this.skinParts.$name.on('dblclick.editOnDblClick', null, function (event) {
+        this.$name.on('dblclick.editOnDblClick', null, function (event) {
             if (self.hostDesignerItem.canvas.getIsReadOnlyMode() !== true) {
                 $(this).editInPlace({
                     class: '',
+                    value: self.name,
                     onChange: function (oldValue, newValue) {
-                        self._onNodeTitleChanged(oldValue, newValue);
+                        self.__onNodeTitleChanged(oldValue, newValue);
+                    },
+                    onFinish: function () {
+                        self.$name.text(self.formattedName);
+                        self.$name.attr('title', self.formattedName);
                     }
                 });
             }
@@ -55,94 +78,148 @@ define([
             event.preventDefault();
         });
 
-        //let the parent decorator class do its job first
-        __parent_proto__.on_addTo.apply(this, arguments);
-    };
-
-    LogicGateDecorator.prototype._renderName = function () {
-        var client = this._control._client,
-            nodeObj = client.getNode(this._metaInfo[CONSTANTS.GME_ID]);
-
-        //render GME-ID in the DOM, for debugging
-        this.$el.attr({'data-id': this._metaInfo[CONSTANTS.GME_ID]});
-
-        if (nodeObj) {
-            this.name = nodeObj.getAttribute(nodePropertyNames.Attributes.name) || '';
+        if (this.$replaceable) {
+            this.$replaceable.on('dblclick.replDblClick', function (event) {
+                self._control._replaceBaseDialog(self._metaInfo[CONSTANTS.GME_ID]);
+                event.stopPropagation();
+                event.preventDefault();
+            });
         }
 
-        //find name placeholder
-        this.skinParts.$name = this.$el.find('.name');
-        this.skinParts.$name.text(this.name);
+        this._updateDropArea();
+    };
+    //jshint camelcase: true
+
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    LogicGateDecoratorDiagramDesignerWidget.prototype.update = function () {
+        this._update();
+        this._updateDropArea();
     };
 
-    LogicGateDecorator.prototype.update = function () {
-        var client = this._control._client,
-            nodeObj = client.getNode(this._metaInfo[CONSTANTS.GME_ID]),
-            newName = '';
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    LogicGateDecoratorDiagramDesignerWidget.prototype.onRenderGetLayoutInfo = function () {
+        this.svgContainerWidth = this.$svgContent.outerWidth(true);
+        this.svgWidth = this.$svgContent.find('svg').outerWidth(true);
+        this.svgHeight = this.$svgContent.find('svg').outerHeight(true);
+        this.svgBorderWidth = parseInt(this.$svgContent.find('svg').css('border-width'), 10);
+        this.nameWidth = this.$name.outerWidth();
+        this.nameHeight = this.$name.outerHeight();
+        this.replaceableHeight = this.$replaceable ? this.$replaceable.outerHeight() : 0;
 
-        if (nodeObj) {
-            newName = nodeObj.getAttribute(nodePropertyNames.Attributes.name) || '';
+        DiagramDesignerWidgetDecoratorBase.prototype.onRenderGetLayoutInfo.call(this);
+    };
 
-            if (this.name !== newName) {
-                this.name = newName;
-                this.skinParts.$name.text(this.name);
+    LogicGateDecoratorDiagramDesignerWidget.prototype.onRenderSetLayoutInfo = function () {
+        if (this.renderLayoutInfo) {
+            if (this.$name) {
+                var shift = (this.svgWidth - this.nameWidth) / 2;
+
+                this.$name.css({left: shift});
+                this.$el.css({
+                    width: this.svgWidth,
+                    height: this.svgHeight
+                });
             }
         }
+
+        //let the parent decorator class do its job finally
+        DiagramDesignerWidgetDecoratorBase.prototype.onRenderSetLayoutInfo.apply(this, arguments);
     };
 
-    LogicGateDecorator.prototype.getConnectionAreas = function (id /*, isEnd, connectionMetaInfo*/) {
+    LogicGateDecoratorDiagramDesignerWidget.prototype.calculateDimension = function () {
+        if (this.hostDesignerItem) {
+            this.hostDesignerItem.setSize(this.svgWidth, this.svgHeight + this.nameHeight + this.replaceableHeight);
+        }
+    };
+
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    LogicGateDecoratorDiagramDesignerWidget.prototype.getConnectionAreas = function (id/*, isEnd, connectionMetaInfo*/) {
         var result = [],
             edge = 10,
-            LEN = 20;
-
-        //by default return the bounding box edge's midpoints
+            LEN = 20,
+            xShift = 0;
 
         if (id === undefined || id === this.hostDesignerItem.id) {
-            //NORTH
-            result.push({
-                id: '0',
-                x1: edge,
-                y1: 0,
-                x2: this.hostDesignerItem.getWidth() - edge,
-                y2: 0,
-                angle1: 270,
-                angle2: 270,
-                len: LEN
-            });
+            if (this._customConnectionAreas && this._customConnectionAreas.length > 0) {
+                //custom connections are defined in the SVG itself
+                result = $.extend(true, [], this._customConnectionAreas);
+                var i = result.length;
+                while (i--) {
+                    result[i].x1 += xShift;
+                    result[i].x2 += xShift;
+                }
+            } else {
+                // No custom connection area defined in the SVG.
+                // By default return the bounding box N, S, E, W edges with a little bit of
+                // padding (variable 'edge') from the sides.
 
-            //EAST
-            result.push({
-                id: '1',
-                x1: this.hostDesignerItem.getWidth(),
-                y1: edge,
-                x2: this.hostDesignerItem.getWidth(),
-                y2: this.hostDesignerItem.getHeight() - edge,
-                angle1: 0,
-                angle2: 0,
-                len: LEN
-            });
+                //North side
+                result.push({
+                    id: 'N',
+                    x1: edge + xShift,
+                    y1: 0,
+                    x2: this.svgWidth - edge + xShift,
+                    y2: 0,
+                    angle1: 270,
+                    angle2: 270,
+                    len: LEN
+                });
 
-            //SOUTH
-            result.push({
-                id: '2',
-                x1: edge,
-                y1: this.hostDesignerItem.getHeight(),
-                x2: this.hostDesignerItem.getWidth() - edge,
-                y2: this.hostDesignerItem.getHeight(),
-                angle1: 90,
-                angle2: 90,
-                len: LEN
-            });
+                //South side
+                result.push({
+                    id: 'S',
+                    x1: edge + xShift,
+                    y1: this.svgHeight,
+                    x2: this.svgWidth - edge + xShift,
+                    y2: this.svgHeight,
+                    angle1: 90,
+                    angle2: 90,
+                    len: LEN
+                });
 
-            //WEST
+                //East side
+                if (this._rightPorts !== true) {
+                    result.push({
+                        id: 'E',
+                        x1: this.svgWidth + xShift,
+                        y1: edge,
+                        x2: this.svgWidth + xShift,
+                        y2: this.svgHeight - edge,
+                        angle1: 0,
+                        angle2: 0,
+                        len: LEN
+                    });
+                }
+
+                //West side
+                if (this._leftPorts !== true) {
+                    result.push({
+                        id: 'W',
+                        x1: 0 + xShift,
+                        y1: edge,
+                        x2: 0 + xShift,
+                        y2: this.svgHeight - edge,
+                        angle1: 180,
+                        angle2: 180,
+                        len: LEN
+                    });
+                }
+            }
+        } else if (this.ports[id]) {
+            //subcomponent
+            var portTop = this.ports[id].top,
+                isLeft = this.ports[id].isLeft,
+                x = xShift + (isLeft ? 1 : this.svgWidth - 1),
+                angle = isLeft ? 180 : 0;
+
             result.push({
-                id: '3',
-                x1: 0,
-                y1: edge,
-                x2: 0,
-                y2: this.hostDesignerItem.getHeight() - edge,
-                angle1: 180,
-                angle2: 180,
+                id: id,
+                x1: x,
+                y1: portTop + this._PORT_HEIGHT / 2,
+                x2: x,
+                y2: portTop + this._PORT_HEIGHT / 2,
+                angle1: angle,
+                angle2: angle,
                 len: LEN
             });
         }
@@ -150,24 +227,126 @@ define([
         return result;
     };
 
-    /**************** EDIT NODE TITLE ************************/
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    //Shows the 'connectors' - appends them to the DOM
+    LogicGateDecoratorDiagramDesignerWidget.prototype.showSourceConnectors = function (params) {
+        var connectors,
+            i;
 
-    LogicGateDecorator.prototype._onNodeTitleChanged = function (oldValue, newValue) {
+        if (!params) {
+            this.$sourceConnectors.show();
+            if (this.portIDs) {
+                i = this.portIDs.length;
+                while (i--) {
+                    this.ports[this.portIDs[i]].showConnectors();
+                }
+            }
+        } else {
+            connectors = params.connectors;
+            i = connectors.length;
+            while (i--) {
+                if (connectors[i] === undefined) {
+                    //show connector for the represented item itself
+                    this.$sourceConnectors.show();
+                } else {
+                    //one of the ports' connector should be displayed
+                    if (this.ports[connectors[i]]) {
+                        this.ports[connectors[i]].showConnectors();
+                    }
+                }
+            }
+        }
+    };
+
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    //Hides the 'connectors' - detaches them from the DOM
+    LogicGateDecoratorDiagramDesignerWidget.prototype.hideSourceConnectors = function () {
+        var i;
+
+        this.$sourceConnectors.hide();
+
+        if (this.portIDs) {
+            i = this.portIDs.length;
+            while (i--) {
+                this.ports[this.portIDs[i]].hideConnectors();
+            }
+        }
+    };
+
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    //should highlight the connectors for the given elements
+    LogicGateDecoratorDiagramDesignerWidget.prototype.showEndConnectors = function (params) {
+        this.showSourceConnectors(params);
+    };
+
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    //Hides the 'connectors' - detaches them from the DOM
+    LogicGateDecoratorDiagramDesignerWidget.prototype.hideEndConnectors = function () {
+        this.hideSourceConnectors();
+    };
+
+    LogicGateDecoratorDiagramDesignerWidget.prototype.__onNodeTitleChanged = function (oldValue, newValue) {
         var client = this._control._client;
 
         client.setAttribute(this._metaInfo[CONSTANTS.GME_ID], nodePropertyNames.Attributes.name, newValue);
     };
 
-    /**************** END OF - EDIT NODE TITLE ************************/
-
-    LogicGateDecorator.prototype.doSearch = function (searchDesc) {
-        var searchText = searchDesc.toString();
-        if (this.name && this.name.toLowerCase().indexOf(searchText.toLowerCase()) !== -1) {
-            return true;
-        }
-
-        return false;
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    //called when the designer item's subcomponent should be updated
+    LogicGateDecoratorDiagramDesignerWidget.prototype.updateSubcomponent = function (portId) {
+        this._updatePort(portId);
     };
 
-    return LogicGateDecorator;
+    /**** Override from ModelDecoratorCore ****/
+    LogicGateDecoratorDiagramDesignerWidget.prototype.renderPort = function (portId) {
+        this.__registerAsSubcomponent(portId);
+
+        return LogicGateDecoratorCore.prototype.renderPort.call(this, portId);
+    };
+
+    /**** Override from ModelDecoratorCore ****/
+    LogicGateDecoratorDiagramDesignerWidget.prototype.removePort = function (portId) {
+        var idx = this.portIDs.indexOf(portId);
+
+        if (idx !== -1) {
+            this.__unregisterAsSubcomponent(portId);
+        }
+
+        LogicGateDecoratorCore.prototype.removePort.call(this, portId);
+    };
+
+    LogicGateDecoratorDiagramDesignerWidget.prototype.__registerAsSubcomponent = function (portId) {
+        if (this.hostDesignerItem) {
+            this.hostDesignerItem.registerSubcomponent(portId, {GME_ID: portId});
+        }
+    };
+
+    LogicGateDecoratorDiagramDesignerWidget.prototype.__unregisterAsSubcomponent = function (portId) {
+        if (this.hostDesignerItem) {
+            this.hostDesignerItem.unregisterSubcomponent(portId);
+        }
+    };
+
+    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
+    LogicGateDecoratorDiagramDesignerWidget.prototype.notifyComponentEvent = function (componentList) {
+        var len = componentList.length;
+        while (len--) {
+            this._updatePort(componentList[len].id);
+        }
+    };
+
+    LogicGateDecoratorDiagramDesignerWidget.prototype._updateDropArea = function () {
+        // enable/disable drag events based on pointers and if it's replaceable.
+        var client = this._control._client,
+            nodeObj = client.getNode(this._metaInfo[CONSTANTS.GME_ID]);
+
+        if (nodeObj && (this._getPointerNames().length > 0 || this._isReplaceable() ||
+            nodeObj.getValidSetNames().length > 0)) {
+            this._enableDragEvents();
+        } else {
+            this._disableDragEvents();
+        }
+    };
+
+    return LogicGateDecoratorDiagramDesignerWidget;
 });
