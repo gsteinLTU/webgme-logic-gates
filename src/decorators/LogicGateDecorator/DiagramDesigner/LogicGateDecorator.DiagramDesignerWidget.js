@@ -15,7 +15,8 @@ define([
     'decorators/ModelDecorator/DiagramDesigner/ModelDecorator.DiagramDesignerWidget',
     'text!../Core/LogicGateDecorator.html',
     'jquery',
-    'underscore'
+    'underscore',
+    'css!./LogicGateDecorator.DiagramDesignerWidget.css',
 ], function (
     REGISTRY_KEYS,
     CONSTANTS,

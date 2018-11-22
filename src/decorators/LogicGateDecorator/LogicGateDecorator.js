@@ -6,7 +6,7 @@
 define([
     'js/Decorators/DecoratorBase',
     './DiagramDesigner/LogicGateDecorator.DiagramDesignerWidget',
-    './PartBrowser/LogicGateDecorator.PartBrowserWidget'
+    './PartBrowser/LogicGateDecorator.PartBrowserWidget',
 ], function (DecoratorBase, LogicGateDecoratorDiagramDesignerWidget, LogicGateDecoratorPartBrowserWidget) {
 
     'use strict';
