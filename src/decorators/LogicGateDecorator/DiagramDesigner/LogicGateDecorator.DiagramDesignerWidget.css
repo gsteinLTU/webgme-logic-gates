@@ -4,6 +4,7 @@
   padding: 3px;
   text-align: center;
   position: relative;
+  display: table;
 }
 
 .logic-gate-decorator .name-wrapper {
@@ -23,7 +24,7 @@
   transform: translateX(-50%) translateY(-50%);
   left: 50%;
   top: 50%;
-  background:white;
+  background: white;
   z-index: 10;
 }
 
@@ -60,14 +61,25 @@
   min-height: 16px;
   width: 121px;
   position: relative;
-  display: table;
+  display: table-row;
 }
 
 .logic-gate-decorator .ports .left {
-  display: inline-block;
-  vertical-align: top;
+  display: table-cell;
+  vertical-align: middle;
   width: 50px;
   min-height: 1px;
+}
+
+.logic-gate-decorator .ports .right {
+  display: table-cell;
+  vertical-align: middle;
+  width: 50px;
+  min-height: 1px;
+}
+
+.logic-gate-decorator .ports .center {
+  display: none;
 }
 
 /* Port connection line from left */
@@ -90,27 +102,13 @@
   content: ' ';
   background: #000000;
   height: 3px;
-  width: 70px;
+  width: 60px;
   position: absolute;
-  top: 7px;
+  top: 5px;
   right: -5px;
   display: table;
   float: left;
   z-index: -10;
-}
-
-.logic-gate-decorator .ports .center {
-  display: inline-block;
-  vertical-align: top;
-  width: 15px;
-  height: 1px;
-}
-
-.logic-gate-decorator .ports .right {
-  display: table-cell;
-  vertical-align: middle;
-  width: 50px;
-  min-height: 1px;
 }
 
 .logic-gate-decorator .ports .port {
@@ -132,7 +130,7 @@
 }
 
 .logic-gate-decorator .ports .port .title-wrapper .title {
-  background:white;
+  background: white;
 }
 
 .logic-gate-decorator .ports .port img.svg-icon {
