@@ -80,20 +80,17 @@ define([
             var portConnArea = this.ports[id].getConnectorArea(),
                 idx = this.portIDs.indexOf(id);
 
-            // Use actual element for port
-            var portElement = document.getElementById(id);
-            var PORT_CONTAINER_OFFSET_Y = portElement.parentElement.getBoundingClientRect().top - portElement.parentElement.parentElement.parentElement.getBoundingClientRect().top;
+            var offset = (this.ports[id].$el.offset().top - this.$el.offset().top) + 7.5;
 
-            // Fixes connection points at non x1.0 scales
-            // NOTE: This is a fix for an issue with jQuery 2.x that was fixed in 3.x
+            // Almost fixes connection points at non x1.0 scales
             var scale = $(".items").first().css('transform').substring("matrix(".length).split(',')[0];
 
             result.push({
                 id: idx,
                 x1: portConnArea.x1,
-                y1: portConnArea.y1 + PORT_CONTAINER_OFFSET_Y / scale,
+                y1: Math.ceil(offset / scale),
                 x2: portConnArea.x2,
-                y2: portConnArea.y2 + PORT_CONTAINER_OFFSET_Y / scale,
+                y2: Math.ceil(offset / scale),
                 angle1: portConnArea.angle1,
                 angle2: portConnArea.angle2,
                 len: portConnArea.len
@@ -126,9 +123,10 @@ define([
         }
 
         // Replace name with icon
-        if(svgURL)
-        {
-            this.skinParts.$name.html($('<img>', {src: svgURL}));
+        if (svgURL) {
+            this.skinParts.$name.html($('<img>', {
+                src: svgURL
+            }));
             this.skinParts.$name.addClass('name-image');
             this.skinParts.$name.parent().addClass('name-wrapper-image');
             this.skinParts.$name.attr('title', this.formattedName);
