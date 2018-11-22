@@ -7,11 +7,14 @@ var config = require('webgme/config/config.default'),
     validateConfig = require('webgme/config/validator');
 
 // The paths can be loaded from the webgme-setup.json
+config.visualization.decoratorPaths.push(__dirname + '/../src/decorators');
+
+config.seedProjects.enable = true
+config.seedProjects.basePaths = ['seeds']
+config.visualization.svgDirs.push(__dirname + '/../assets/LogicGateSVGs/');
 
 
-
-
-
+config.seedProjects.defaultProject = 'LogicGates'
 
 
 // Visualizer descriptors
@@ -23,10 +26,5 @@ config.requirejsPaths = {
 
 
 config.mongo.uri = 'mongodb://127.0.0.1:27017/webgme_logic_gates';
-
-config.seedProjects.enable = true
-config.seedProjects.defaultProject = 'LogicGates'
-config.seedProjects.basePaths = ['seeds']
-
 validateConfig(config);
 module.exports = config;
