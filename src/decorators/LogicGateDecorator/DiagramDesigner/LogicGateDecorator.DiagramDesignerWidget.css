@@ -27,6 +27,15 @@
   z-index: 10;
 }
 
+.logic-gate-decorator .name-wrapper-image {
+  border: none !important;
+}
+
+
+.logic-gate-decorator .name-wrapper-image img {
+  height: 100%;
+}
+
 .logic-gate-decorator .name {
   position: absolute;
   transform: translateX(-50%) translateY(-50%);

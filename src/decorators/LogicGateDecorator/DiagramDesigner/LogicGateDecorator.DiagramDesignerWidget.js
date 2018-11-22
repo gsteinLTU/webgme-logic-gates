@@ -14,6 +14,8 @@ define([
     'js/Constants',
     'decorators/ModelDecorator/DiagramDesigner/ModelDecorator.DiagramDesignerWidget',
     'text!../Core/LogicGateDecorator.html',
+    'js/Utils/DisplayFormat',
+    'js/Utils/GMEConcepts',
     'jquery',
     'underscore',
     'css!./LogicGateDecorator.DiagramDesignerWidget.css',
@@ -21,7 +23,9 @@ define([
     REGISTRY_KEYS,
     CONSTANTS,
     ModelDecoratorDiagramDesignerWidget,
-    modelDecoratorTemplate,) {
+    modelDecoratorTemplate,
+    displayFormat,
+    GMEConcepts, ) {
 
     'use strict';
 
@@ -64,13 +68,13 @@ define([
         ModelDecoratorDiagramDesignerWidget.prototype.update.apply(this, arguments);
     };
 
-    
-    /**** Override from DiagramDesignerWidgetDecoratorBase ****/
-    LogicGateDecorator.prototype.getConnectionAreas = function (id/*, isEnd, connectionMetaInfo*/) {
+
+    /**** Override from ModelDecoratorDiagramDesignerWidget ****/
+    LogicGateDecorator.prototype.getConnectionAreas = function (id /*, isEnd, connectionMetaInfo*/ ) {
         var result = [],
             edge = 10,
             LEN = 20;
-        
+
         if (this.ports[id]) {
             //subcomponent
             var portConnArea = this.ports[id].getConnectorArea(),
@@ -78,9 +82,10 @@ define([
 
             // Use actual element for port
             var portElement = document.getElementById(id);
+            var PORT_CONTAINER_OFFSET_Y = portElement.parentElement.getBoundingClientRect().top - portElement.parentElement.parentElement.parentElement.getBoundingClientRect().top;
 
-            var PORT_CONTAINER_OFFSET_Y = portElement.parentElement.getBoundingClientRect().top -  portElement.parentElement.parentElement.parentElement.getBoundingClientRect().top; 
-
+            // Fixes connection points at non x1.0 scales
+            // NOTE: This is a fix for an issue with jQuery 2.x that was fixed in 3.x
             var scale = $(".items").first().css('transform').substring("matrix(".length).split(',')[0];
 
             result.push({
@@ -98,5 +103,57 @@ define([
         return result;
     };
 
+
+    /**** Override from ModelDecoratorCore ****/
+    LogicGateDecorator.prototype._updateSVG = function () {
+
+    };
+
+    /**** Override from ModelDecoratorCore ****/
+    LogicGateDecorator.prototype._updateName = function () {
+        var client = this._control._client,
+            nodeObj = client.getNode(this._metaInfo[CONSTANTS.GME_ID]),
+            svgURL = null,
+            self = this;
+
+        if (nodeObj) {
+            this.name = nodeObj.getFullyQualifiedName();
+            this.formattedName = displayFormat.resolve(nodeObj);
+            svgURL = WebGMEGlobal.SvgManager.getSvgUri(nodeObj, REGISTRY_KEYS.SVG_ICON);
+        } else {
+            this.name = '';
+            this.formattedName = noName;
+        }
+
+        // Replace name with icon
+        if(svgURL)
+        {
+            this.skinParts.$name.html($('<img>', {src: svgURL}));
+            this.skinParts.$name.parent().addClass('name-wrapper-image');
+            this.skinParts.$name.attr('title', this.formattedName);
+        } else {
+            this.skinParts.$name.text(this.formattedName);
+            this.skinParts.$name.parent().removeClass('name-wrapper-image');
+            this.skinParts.$name.attr('title', this.formattedName);
+        }
+    };
+
+    /**** Override from ModelDecoratorCore ****/
+    LogicGateDecorator.prototype._updateConnectionType = function () {
+        var isConnectionType = GMEConcepts.isConnectionType(this._metaInfo[CONSTANTS.GME_ID]);
+
+        if (isConnectionType) {
+            if (!this.skinParts.$divConnType) {
+                this.skinParts.$divConnType = CONN_TYPE_BASE.clone();
+                this.skinParts.$divConnType.insertAfter(this.skinParts.$name);
+                this.skinParts.$divConnType.text('<< Connection >>');
+            }
+        } else {
+            if (this.skinParts.$divConnType) {
+                this.skinParts.$divConnType.remove();
+                delete this.skinParts.$divConnType;
+            }
+        }
+    };
     return LogicGateDecorator;
 });
