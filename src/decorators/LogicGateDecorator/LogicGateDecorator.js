@@ -1,17 +1,13 @@
 /*globals define, _*/
-/*jshint browser: true*/
-
 /**
- * @author rkereskenyi / https://github.com/rkereskenyi
+ * @author pmeijer / https://github.com/pmeijer
  */
 
 define([
     'js/Decorators/DecoratorBase',
     './DiagramDesigner/LogicGateDecorator.DiagramDesignerWidget',
     './PartBrowser/LogicGateDecorator.PartBrowserWidget'
-], function (DecoratorBase,
-             LogicGateDecoratorDiagramDesignerWidget,
-             LogicGateDecoratorPartBrowserWidget) {
+], function (DecoratorBase, LogicGateDecoratorDiagramDesignerWidget, LogicGateDecoratorPartBrowserWidget) {
 
     'use strict';
 
@@ -32,12 +28,10 @@ define([
     /*********************** OVERRIDE DecoratorBase MEMBERS **************************/
 
     LogicGateDecorator.prototype.initializeSupportedWidgetMap = function () {
-
         this.supportedWidgetMap = {
             DiagramDesigner: LogicGateDecoratorDiagramDesignerWidget,
             PartBrowser: LogicGateDecoratorPartBrowserWidget
         };
-
     };
 
     return LogicGateDecorator;
