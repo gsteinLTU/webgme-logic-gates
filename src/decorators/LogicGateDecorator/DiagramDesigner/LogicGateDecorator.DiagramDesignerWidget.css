@@ -31,6 +31,10 @@
   border: none !important;
 }
 
+.logic-gate-decorator .name-image {
+  height: 100% !important;
+}
+
 
 .logic-gate-decorator .name-wrapper-image img {
   height: 100%;

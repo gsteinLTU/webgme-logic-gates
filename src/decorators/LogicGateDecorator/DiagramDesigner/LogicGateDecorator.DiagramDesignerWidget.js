@@ -129,11 +129,13 @@ define([
         if(svgURL)
         {
             this.skinParts.$name.html($('<img>', {src: svgURL}));
+            this.skinParts.$name.addClass('name-image');
             this.skinParts.$name.parent().addClass('name-wrapper-image');
             this.skinParts.$name.attr('title', this.formattedName);
         } else {
             this.skinParts.$name.text(this.formattedName);
             this.skinParts.$name.parent().removeClass('name-wrapper-image');
+            this.skinParts.$name.removeClass('name-image');
             this.skinParts.$name.attr('title', this.formattedName);
         }
     };
