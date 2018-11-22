@@ -78,7 +78,7 @@
   width: 60px;
   position: absolute;
   top: 7px;
-  left: -5px;
+  left: -7px;
   display: table;
   float: right;
   z-index: -10;
@@ -144,7 +144,7 @@
 }
 
 .logic-gate-decorator .ports .port span.dot {
-  display: inline-block;
+  display: none;
   background: #666666;
   border: 1px solid #666666;
   position: absolute;
