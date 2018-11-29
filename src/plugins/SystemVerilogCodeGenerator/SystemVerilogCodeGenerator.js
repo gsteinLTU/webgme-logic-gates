@@ -63,6 +63,8 @@ define([
             inputNodes = [],
             outputNodes = [],
             gateNodes = [],
+            logicVals = {},
+            logicValsUnique = [],
             gateNodesConnections = {},
             connectionNodes = [],
             inputsVerilogString,
@@ -80,40 +82,37 @@ define([
             var childrenPaths = core.getChildrenPaths(activeNode);
             for(var i = 0; i < childrenPaths.length; i += 1){
                 node = nodes[childrenPaths[i]];
-                logger.debug('[', childrenPaths[i], '] has name', core.getAttribute(node, 'name'));
+                //logger.debug('[', childrenPaths[i], '] has name', core.getAttribute(node, 'name'));
                 if(self.isMetaTypeOf(node, self.META.Input)){
-                    logger.debug("input");
+                    //logger.debug("input");
                     inputNodes.push(node);
                 }else if(self.isMetaTypeOf(node, self.META.Output)){
-                    logger.debug("output");
+                    //logger.debug("output");
                     outputNodes.push(node);
                 }else if(self.isMetaTypeOf(node, self.META.LogicGate)){
-                    logger.debug("gate");
+                    //logger.debug("gate");
                     gateNodes.push(node);
                     var dict = {};
                     dict["inputs"] = [];
                     dict["outputs"] = [];
                     gateNodesConnections[core.getRelid(node)] = dict;
                 }else if(self.isMetaTypeOf(node, self.META.Connection)){
-                    logger.debug("connection");
+                    //logger.debug("connection");
                     connectionNodes.push(node);
                 }
             }
         }
 
         function getGateConnections(nodes){
-            logger.debug("number", connectionNodes.length);
+            //logger.debug("number", connectionNodes.length);
             for(var i = 0; i < connectionNodes.length; i += 1){
                 var sourceNode = nodes[core.getPointerPath(connectionNodes[i], 'src')];
                 var destinationNode = nodes[core.getPointerPath(connectionNodes[i], 'dst')];
-                logger.debug("source has name ", core.getAttribute(sourceNode, 'name'));
-                logger.debug("destination has name ",core.getAttribute(destinationNode, 'name'));
-                logger.debug("SOURCE META Type", core.getAttribute(core.getMetaType(sourceNode), 'name'));
-                logger.debug("DEST META Type", core.getAttribute(core.getMetaType(destinationNode), 'name'));
+
                 var sourceParent = core.getParent(sourceNode);
                 var destParent = core.getParent(destinationNode);
+
                 if(self.isMetaTypeOf(sourceParent, self.META.LogicGate)){
-                    logger.debug("is a logic gate!!");
                     var sourceParentRelid = core.getRelid(sourceParent);
                     var connected = gateNodesConnections[sourceParentRelid];
                     if(self.isMetaTypeOf(destinationNode, self.META.OutPort)){
@@ -128,7 +127,6 @@ define([
                     gateNodesConnections[sourceParentRelid] = connected;
                 }
                 if(self.isMetaTypeOf(destParent, self.META.LogicGate)){
-                    logger.debug("is a logic gate!!");
                     var destinationParentRelid = core.getRelid(destParent);
                     var connected = gateNodesConnections[destinationParentRelid];
                     if(self.isMetaTypeOf(sourceNode, self.META.OutPort)){
@@ -144,6 +142,34 @@ define([
 
                 }
 
+            }
+        }
+
+        function checkForLogicVals(){
+            var numOfLogicValsAdded = 0;
+            for(var i = 0; i < gateNodes.length; i += 1){
+                var gate = gateNodes[i];
+                var relid = core.getRelid(gate);
+
+                var vals = gateNodesConnections[relid];
+                var inputs = vals["inputs"];
+                var outputs = vals["outputs"];
+
+                for(var k = 0; k < inputs.length; k +=1){
+                    if(self.isMetaTypeOf(inputs[k], self.META.LogicGate)){
+                        logicValsUnique.push('logic' + numOfLogicValsAdded);
+                        logicVals[core.getRelid(inputs[k])] = 'logic' + numOfLogicValsAdded;
+                        logicVals[core.getRelid(gateNodes[i])] = 'logic' + numOfLogicValsAdded;
+                        numOfLogicValsAdded = numOfLogicValsAdded + 1;
+                    }
+                }
+                // for(var k = 0; k < outputs.length; k +=1){
+                //     logger.debug("outputMETA", core.getMetaType(outputs[k]));
+                //     if(self.isMetaTypeOf(outputs[k], self.META.LogicGate)){
+                //         logicVals[core.getRelid(outputs[k])] = 'logic' + numOfLogicValsAdded;
+                //         numOfLogicValsAdded = numOfLogicValsAdded + 1;
+                //     }
+                // }
             }
         }
         /** getInputsVerilogString generates input string for system verilog code
@@ -166,30 +192,50 @@ define([
             }
         }
 
+        function getLogicVerilogString(){
+            logicVerilogString = 'logic ';
+            for(var i = 0; i < logicValsUnique.length; i +=1){
+                if(i == logicValsUnique.length - 1){
+                    logicVerilogString = logicVerilogString + logicValsUnique[i]
+                }else {
+                    logicVerilogString = logicVerilogString + logicValsUnique[i] + ", ";
+                }
+            }
+            logicVerilogString = logicVerilogString + ";";
+        }
+
         function getGatesVerilogString(){
             gatesVerilogString = "";
             for(var i = 0; i < gateNodes.length; i += 1){
                 var gate = gateNodes[i];
                 var relid = core.getRelid(gate);
-                logger.debug("relid", relid);
+                //logger.debug("relid", relid);
                 var vals = gateNodesConnections[relid];
                 var inputs = vals["inputs"];
                 var outputs = vals["outputs"];
-                logger.debug("inputs", inputs);
+                //logger.debug("inputs", inputs);
 
-                var inputString = core.getRelid(inputs[0]);
-                var outputString = core.getRelid(outputs[0]);
+                var inputString = "";
+                if(logicVals[core.getRelid(outputs[0])] != undefined){
+                    var outputString = logicVals[core.getRelid(outputs[0])];
 
-                for(var k = 1; k < inputs.length; k += 1){
-                    inputString = inputString + ", " +  core.getRelid(inputs[k]);
+                }else{
+                    var outputString = core.getRelid(outputs[0]);
                 }
-                for(var k = 1; k < outputs.length; k += 1){
-                     outputString = outputString + ", " + core.getRelid(outputs[k]);
+
+                for(var k = 0; k < inputs.length; k += 1){
+                    var inputRelid = core.getRelid(inputs[k]);
+                    var inputStringAddition = inputRelid;
+
+                    if(logicVals[inputRelid] != undefined){
+                        inputStringAddition = logicVals[inputRelid];
+                    }
+                    inputString = inputString + ", " +inputStringAddition ;
                 }
 
                 var gateName = core.getAttribute(gate, 'gatename');
                  gatesVerilogString = gatesVerilogString + gateName + " " + relid
-                     + "(" + outputString + ", " + inputString + "); \n";
+                     + "(" + outputString + inputString + "); \n";
             }
 
         }
@@ -202,11 +248,14 @@ define([
                 getInputsVerilogString();
                 getOutputsVerilogString();
                 getGateConnections(nodes);
+                checkForLogicVals();
                 getGatesVerilogString();
+                getLogicVerilogString();
+
 
                 verilogString = 'module '+ core.getAttribute(activeNode, 'name') + '(\n' +
                     inputsVerilogString + '\n' +  outputsVerilogString + '\n' + ');' + '\n' +
-                    gatesVerilogString + 'endmodule';
+                    logicVerilogString + '\n' + gatesVerilogString + 'endmodule';
                 //
                 artifact = self.blobClient.createArtifact('MyArtifact');
                 return artifact.addFiles({
@@ -218,14 +267,14 @@ define([
 
             }).then(function (fileMetadataHashes) {
                 // We can link to each individual file
-                self.logger.info('Added files to blob-storage', fileMetadataHashes);
+                //self.logger.info('Added files to blob-storage', fileMetadataHashes);
                 self.result.addArtifact(fileMetadataHashes[0]);
                 self.result.addArtifact(fileMetadataHashes[1]);
                 // and/or save the full artifact and link to it (will be a zip file).
                 return artifact.save();
             }).then(function (artifactHash) {
                 self.result.addArtifact(artifactHash);
-                self.logger.info('Added complex artifact to blob-storage', artifactHash);
+                //self.logger.info('Added complex artifact to blob-storage', artifactHash);
                 self.result.setSuccess(true);
                 callback(null, self.result);
             }).catch(function (err) {
