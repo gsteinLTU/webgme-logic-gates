@@ -4,9 +4,20 @@
       "LogicGateDecorator": {
         "src": "src/decorators/LogicGateDecorator"
       }
+    },
+    "plugins": {
+      "DigitalJSCodeGenerator": {
+        "src": "src/plugins/DigitalJSCodeGenerator",
+        "test": "test/plugins/DigitalJSCodeGenerator"
+      },
+      "SystemVerilogCodeGenerator": {
+        "src": "src/plugins/SystemVerilogCodeGenerator",
+        "test": "test/plugins/SystemVerilogCodeGenerator"
+      }
     }
   },
   "dependencies": {
-    "decorators": {}
+    "decorators": {},
+    "plugins": {}
   }
 }
