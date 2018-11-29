@@ -193,15 +193,20 @@ define([
         }
 
         function getLogicVerilogString(){
-            logicVerilogString = 'logic ';
-            for(var i = 0; i < logicValsUnique.length; i +=1){
-                if(i == logicValsUnique.length - 1){
-                    logicVerilogString = logicVerilogString + logicValsUnique[i]
-                }else {
-                    logicVerilogString = logicVerilogString + logicValsUnique[i] + ", ";
+            logger.debug("TESTING",logicValsUnique.length)
+            if(logicValsUnique.length > 0) {
+                logicVerilogString = 'logic ';
+                for (var i = 0; i < logicValsUnique.length; i += 1) {
+                    if (i == logicValsUnique.length - 1) {
+                        logicVerilogString = logicVerilogString + logicValsUnique[i]
+                    } else {
+                        logicVerilogString = logicVerilogString + logicValsUnique[i] + ", ";
+                    }
                 }
+                logicVerilogString = logicVerilogString + ";";
+            }else{
+                logicVerilogString = "";
             }
-            logicVerilogString = logicVerilogString + ";";
         }
 
         function getGatesVerilogString(){
