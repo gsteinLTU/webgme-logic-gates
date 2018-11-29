@@ -14,10 +14,20 @@
         "src": "src/plugins/SystemVerilogCodeGenerator",
         "test": "test/plugins/SystemVerilogCodeGenerator"
       }
+    },
+    "visualizers": {
+      "CircuitSimulator": {
+        "src": "panels/CircuitSimulator/CircuitSimulatorPanel",
+        "title": "CircuitSimulator",
+        "panel": "src/visualizers/panels/CircuitSimulator",
+        "secondary": false,
+        "widget": "src/visualizers/widgets/CircuitSimulator"
+      }
     }
   },
   "dependencies": {
     "decorators": {},
-    "plugins": {}
+    "plugins": {},
+    "visualizers": {}
   }
 }

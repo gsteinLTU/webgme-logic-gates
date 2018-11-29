@@ -1,0 +1,8 @@
+[
+  {
+    "id": "CircuitSimulator",
+    "title": "CircuitSimulator",
+    "panel": "panels/CircuitSimulator/CircuitSimulatorPanel",
+    "DEBUG_ONLY": false
+  }
+]
