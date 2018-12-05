@@ -21,7 +21,9 @@
     "mocha": "^5.2.0",
     "webgme": "^2.33.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "digitaljs": "^0.2.1"
+  },
   "description": "First, install the webgme-logic-gates following: - [NodeJS](https://nodejs.org/en/) (v4.x.x recommended) - [MongoDB](https://www.mongodb.com/)",
   "main": "app.js",
   "directories": {

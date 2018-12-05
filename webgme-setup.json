@@ -23,11 +23,19 @@
         "secondary": false,
         "widget": "src/visualizers/widgets/CircuitSimulator"
       }
+    },
+    "routers": {
+      "DigitalJSRouter": {
+        "src": "src/routers/DigitalJSRouter",
+        "test": "test/routers/DigitalJSRouter",
+        "mount": "routers/DigitalJSRouter"
+      }
     }
   },
   "dependencies": {
     "decorators": {},
     "plugins": {},
-    "visualizers": {}
+    "visualizers": {},
+    "routers": {}
   }
 }
