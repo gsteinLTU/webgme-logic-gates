@@ -30,7 +30,7 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
         this._el.addClass(WIDGET_CLASS);
 
         // Create a dummy header 
-        this._el.append('<iframe src="http://digitaljs.tilk.eu/" style="width:100%;height:100%"></iframe>');
+        this._el.append('<iframe src="/routers/DigitalJSRouter/get" style="width:100%;height:100%; padding: 0; margin: 0;"></iframe>');
 
         // Registering to events can be done with jQuery (as normal)
         this._el.on('dblclick', function (event) {

@@ -8,3 +8,7 @@
 
 .circuit-simulator {
   outline: none; }
+
+  .panel-body {
+    padding: 0 !important;
+  }
