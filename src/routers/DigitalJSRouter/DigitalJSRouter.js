@@ -57,7 +57,7 @@ function initialize(middlewareOpts) {
     router.get('/get', function (req, res/*, next*/) {
         try{
             res.setHeader('Content-Type', 'text/html');
-            res.sendFile(__dirname + '/digitaljs/index.html');
+            res.sendFile(__dirname + '/digitaljs/main.html');
         } catch (e) {
             console.log(e);
         }
