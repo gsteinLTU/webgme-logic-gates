@@ -12,7 +12,11 @@
         <div id="paper"></div>
         <script src="/routers/DigitalJSRouter/getJS"></script>
         <script>
+            document.addEventListener('message', (msg) => document.append("<div>"+ msg.data + "</div>"));
+
             $().ready(function() {
+
+
                 adder = {
   "devices": {
     "dev0": {
