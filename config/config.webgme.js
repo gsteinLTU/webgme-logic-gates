@@ -23,6 +23,11 @@ config.visualization.panelPaths.push(__dirname + '/../src/visualizers/panels');
 
 
 
+config.rest.components['DigitalJSRouter'] = {
+  src: __dirname + '/../src/routers/DigitalJSRouter/DigitalJSRouter.js',
+  mount: 'routers/DigitalJSRouter',
+  options: {}
+};
 
 // Visualizer descriptors
 config.visualization.visualizerDescriptors.push(__dirname + '/../src/visualizers/Visualizers.json');

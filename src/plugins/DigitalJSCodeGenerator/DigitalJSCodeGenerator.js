@@ -148,21 +148,20 @@ define([
                 digitalJSDict["subcircuits"] = {};
                 var jsonString = JSON.stringify(digitalJSDict);
 
+                self.result.jsonString = jsonString;
                 artifact = self.blobClient.createArtifact('MyArtifact');
                 return artifact.addFiles({
                     'digitalJS.txt': jsonString,
                     'circuit.json': jsonString
                 });
-                self.result.setSuccess(true);
-                callback(null, self.result);
 
             }).then(function (fileMetadataHashes) {
-            // We can link to each individual file
-            //self.logger.info('Added files to blob-storage', fileMetadataHashes);
-            self.result.addArtifact(fileMetadataHashes[0]);
-            self.result.addArtifact(fileMetadataHashes[1]);
-            // and/or save the full artifact and link to it (will be a zip file).
-            return artifact.save();
+                // We can link to each individual file
+                //self.logger.info('Added files to blob-storage', fileMetadataHashes);
+                self.result.addArtifact(fileMetadataHashes[0]);
+                self.result.addArtifact(fileMetadataHashes[1]);
+                // and/or save the full artifact and link to it (will be a zip file).
+                return artifact.save();
         }).then(function (artifactHash) {
             self.result.addArtifact(artifactHash);
             //self.logger.info('Added complex artifact to blob-storage', artifactHash);

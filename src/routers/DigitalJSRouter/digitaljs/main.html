@@ -1,0 +1,28 @@
+<html>
+    <head>
+
+        <style>
+            #paper {
+                width: 100% !important;
+                height: 100% !important;
+            }    
+        </style>
+    </head>
+    <body>
+        <div id="paper"></div>
+        <script src="/routers/DigitalJSRouter/getJS"></script>
+        <script>
+            document.addEventListener('message', (msg) => document.append("<div>"+ msg.data + "</div>"));
+
+            $().ready(function() {
+                adder = CIRCUIT_JSON;
+                // create the simulation object
+                const circuit = new digitaljs.Circuit(adder);
+                // display on #paper
+                const paper = circuit.displayOn($('#paper'));
+                // activate real-time simulation
+                circuit.start();
+            });
+        </script>
+    </body>
+</html>

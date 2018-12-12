@@ -13,6 +13,7 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
     CircuitSimulatorWidget = function (logger, container) {
         this._logger = logger.fork('Widget');
 
+
         this._el = container;
 
         this.nodes = {};
@@ -28,17 +29,7 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
 
         // set widget class
         this._el.addClass(WIDGET_CLASS);
-
-        // Create a dummy header 
-        this._el.append('<iframe src="http://digitaljs.tilk.eu/" style="width:100%;height:100%"></iframe>');
-
-        // Registering to events can be done with jQuery (as normal)
-        this._el.on('dblclick', function (event) {
-            event.stopPropagation();
-            event.preventDefault();
-            self.onBackgroundDblClick();
-        });
-    };
+ };
 
     CircuitSimulatorWidget.prototype.onWidgetContainerResize = function (width, height) {
         this._logger.debug('Widget is resizing...');
@@ -46,35 +37,17 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
 
     // Adding/Removing/Updating items
     CircuitSimulatorWidget.prototype.addNode = function (desc) {
-        // if (desc) {
-        //     // Add node to a table of nodes
-        //     var node = document.createElement('div'),
-        //         label = 'children';
-
-        //     if (desc.childrenIds.length === 1) {
-        //         label = 'child';
-        //     }
-
-        //     this.nodes[desc.id] = desc;
-        //     node.innerHTML = 'Adding node "' + desc.name + '" (click to view). It has ' + 
-        //         desc.childrenIds.length + ' ' + label + '.';
-
-        //     this._el.append(node);
-        //     node.onclick = this.onNodeClick.bind(this, desc.id);
-        // }
     };
 
     CircuitSimulatorWidget.prototype.removeNode = function (gmeId) {
-        // var desc = this.nodes[gmeId];
-        // this._el.append('<div>Removing node "' + desc.name + '"</div>');
-        // delete this.nodes[gmeId];
     };
 
     CircuitSimulatorWidget.prototype.updateNode = function (desc) {
-        // if (desc) {
-        //     this._logger.debug('Updating node:', desc);
-        //     this._el.append('<div>Updating node "' + desc.name + '"</div>');
-        // }
+    };
+
+    CircuitSimulatorWidget.prototype.setData = function (data) {
+        // Load simulator in iframe
+        this._el.html('<iframe id="simframe" src="/routers/DigitalJSRouter/get?code=' + encodeURIComponent(data) + '" style="width:100%;height:100%; padding: 0; margin: 0;"></iframe>');
     };
 
     /* * * * * * * * Visualizer event handlers * * * * * * * */
@@ -92,8 +65,7 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
     CircuitSimulatorWidget.prototype.destroy = function () {
     };
 
-    CircuitSimulatorWidget.prototype.onActivate = function () {
-        this._logger.debug('CircuitSimulatorWidget has been activated');
+    CircuitSimulatorWidget.prototype.onActivate = function () {     
     };
 
     CircuitSimulatorWidget.prototype.onDeactivate = function () {
