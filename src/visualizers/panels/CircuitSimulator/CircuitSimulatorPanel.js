@@ -45,11 +45,25 @@ define([
         //set Widget title
         this.setTitle('');
 
-        this._currentNode = this._client.getCurrentPluginContext("DigitalJSCodeGenerator").managerConfig.activeNode;
-
+        
         this.widget = new CircuitSimulatorWidget(this.logger, this.$el);
         
-        this.widget._currentNode = this._currentNode;
+        // Send info about node to widget
+        try {
+            this._client.runBrowserPlugin(
+                "DigitalJSCodeGenerator",
+                this._client.getCurrentPluginContext("DigitalJSCodeGenerator"),
+                (err, result) => {
+                    if (err) {
+                        console.log(err);
+                        return;
+                    }
+                    
+                    this.widget.setData(result.jsonString);
+            });
+        } catch (error) {
+            console.log(error);
+        }
 
         this.widget.setTitle = function (title) {
             self.setTitle(title);

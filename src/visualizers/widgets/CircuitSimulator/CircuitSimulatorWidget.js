@@ -45,6 +45,11 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
     CircuitSimulatorWidget.prototype.updateNode = function (desc) {
     };
 
+    CircuitSimulatorWidget.prototype.setData = function (data) {
+        // Load simulator in iframe
+        this._el.html('<iframe id="simframe" src="/routers/DigitalJSRouter/get?code=' + encodeURIComponent(data) + '" style="width:100%;height:100%; padding: 0; margin: 0;"></iframe>');
+    };
+
     /* * * * * * * * Visualizer event handlers * * * * * * * */
 
     CircuitSimulatorWidget.prototype.onNodeClick = function (/*id*/) {
@@ -61,8 +66,6 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
     };
 
     CircuitSimulatorWidget.prototype.onActivate = function () {     
-        // Load simulator in iframe
-        this._el.html('<iframe id="simframe" src="/routers/DigitalJSRouter/get" style="width:100%;height:100%; padding: 0; margin: 0;"></iframe>');
     };
 
     CircuitSimulatorWidget.prototype.onDeactivate = function () {
