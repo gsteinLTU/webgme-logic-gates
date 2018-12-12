@@ -103,12 +103,13 @@ define([
         function getConnectors(nodes){
             var connectors = [];
             var path;
+            var numPorts = 0;
             for(path in nodes){
                 node = nodes[path];
                 var nodeDict = {};
                 var toDict = {};
                 var fromDict = {};
-                var numPorts = 0;
+
                 if(self.isMetaTypeOf(node, self.META.Connection)){
                     var sourceNode = nodes[core.getPointerPath(node, 'src')];
                     var destinationNode = nodes[core.getPointerPath(node, 'dst')];
@@ -134,12 +135,13 @@ define([
                     connectors.push(nodeDict);
                 }
             }
+            return connectors;
 
         }
 
         this.loadNodeMap(activeNode)
             .then(function (nodes) {
-
+                
                 //get all the components
                 var devices = getDevices(nodes);
                 var connectors = getConnectors(nodes);
