@@ -58,7 +58,7 @@ function initialize(middlewareOpts) {
     router.get('/get', function (req, res/*, next*/) {
         try{
             let data = fs.readFileSync(__dirname + '/digitaljs/main.html').toString();
-            data = data.replace('CIRCUIT_JSON', decodeURIComponent(req.params["code"])); 
+            data = data.replace('CIRCUIT_JSON', decodeURIComponent(req.param("code"))); 
             res.setHeader('Content-Type', 'text/html');
             res.send(data);
         } catch (e) {
