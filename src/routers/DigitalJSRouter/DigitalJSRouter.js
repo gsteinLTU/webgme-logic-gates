@@ -58,11 +58,9 @@ function initialize(middlewareOpts) {
     router.get('/get', function (req, res/*, next*/) {
         try{
             let data = fs.readFileSync(__dirname + '/digitaljs/main.html').toString();
-            let circuitJSON = plugin.main((result) => {
-                data = data.replace('CIRCUIT_JSON', 'a'); 
-                res.setHeader('Content-Type', 'text/html');
-                res.send(data);
-            });
+            data = data.replace('CIRCUIT_JSON', decodeURIComponent(req.param("code"))); 
+            res.setHeader('Content-Type', 'text/html');
+            res.send(data);
         } catch (e) {
             console.log(e);
         }
