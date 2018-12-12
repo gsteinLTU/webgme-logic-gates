@@ -80,7 +80,7 @@ define([
                     deviceNames[core.getRelid(node) + "dev"] =  deviceName;
                     i = i  + 1;
                     nodeDict["label"] = core.getRelid(node) + "dev";
-                    nodeDict["celltype"] = "$" + core.getAttribute(node, "name");
+                    nodeDict["celltype"] = core.getAttribute(node, "celltype");
                     if(self.isMetaTypeOf(node, self.META.Input) || self.isMetaTypeOf(node, self.META.Output)){
                         if(self.isMetaTypeOf(node, self.META.Input)){
                             nodeDict["celltype"] = "$button";
@@ -141,7 +141,7 @@ define([
 
         this.loadNodeMap(activeNode)
             .then(function (nodes) {
-                
+
                 //get all the components
                 var devices = getDevices(nodes);
                 var connectors = getConnectors(nodes);
