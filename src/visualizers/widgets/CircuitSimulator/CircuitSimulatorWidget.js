@@ -13,6 +13,7 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
     CircuitSimulatorWidget = function (logger, container) {
         this._logger = logger.fork('Widget');
 
+
         this._el = container;
 
         this.nodes = {};
@@ -28,22 +29,7 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
 
         // set widget class
         this._el.addClass(WIDGET_CLASS);
-
-        // Load simulator in iframe
-        this._el.append('<iframe id="simframe" src="/routers/DigitalJSRouter/get" style="width:100%;height:100%; padding: 0; margin: 0;"></iframe>');
-
-        var sendmessage = () => {
-            console.log('hi');
-            // Send file to iframe
-            if($('#simframe')[0] != undefined){
-                $('#simframe')[0].contentWindow.postMessage("hi");
-            } else {
-                setTimeout(sendmessage, 500);
-            }
-        }
-        
-        sendmessage();
-    };
+ };
 
     CircuitSimulatorWidget.prototype.onWidgetContainerResize = function (width, height) {
         this._logger.debug('Widget is resizing...');
@@ -74,8 +60,9 @@ define(['css!./styles/CircuitSimulatorWidget.css'], function () {
     CircuitSimulatorWidget.prototype.destroy = function () {
     };
 
-    CircuitSimulatorWidget.prototype.onActivate = function () {
-        this._logger.debug('CircuitSimulatorWidget has been activated');
+    CircuitSimulatorWidget.prototype.onActivate = function () {     
+        // Load simulator in iframe
+        this._el.html('<iframe id="simframe" src="/routers/DigitalJSRouter/get" style="width:100%;height:100%; padding: 0; margin: 0;"></iframe>');
     };
 
     CircuitSimulatorWidget.prototype.onDeactivate = function () {

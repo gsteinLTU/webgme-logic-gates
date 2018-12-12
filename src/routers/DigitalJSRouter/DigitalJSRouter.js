@@ -10,7 +10,8 @@
 
 // http://expressjs.com/en/guide/routing.html
 var express = require('express'),
-    router = express.Router();
+    router = express.Router(),
+    fs = require('fs');
 
 /**
  * Called when the server is created but before it starts to listening to incoming requests.
@@ -56,15 +57,15 @@ function initialize(middlewareOpts) {
 
     router.get('/get', function (req, res/*, next*/) {
         try{
-            res.setHeader('Content-Type', 'text/html');
-            res.sendFile(__dirname + '/digitaljs/main.html');
+            let data = fs.readFileSync(__dirname + '/digitaljs/main.html').toString();
+            let circuitJSON = plugin.main((result) => {
+                data = data.replace('CIRCUIT_JSON', 'a'); 
+                res.setHeader('Content-Type', 'text/html');
+                res.send(data);
+            });
         } catch (e) {
             console.log(e);
         }
-    });
-
-    router.post('/postExample', function (req, res/*, next*/) {
-        res.sendStatus(201);
     });
 
     logger.debug('ready');
