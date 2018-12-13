@@ -62,7 +62,11 @@ define([
             self = this,
             digitalJSDict = {},
             deviceNames = {},
-             addedDict = {};
+            addedDict = {},
+            devices = [],
+            allDevices,
+            allConnectors
+            ;
 
 
         function getDevices(nodes){
@@ -79,6 +83,7 @@ define([
                     || self.isMetaTypeOf(node, self.META.Output)){
                     var deviceName = "dev" + i;
                     deviceNames[core.getRelid(node) + "dev"] =  deviceName;
+                    devices.push(core.getRelid(node));
                     i = i  + 1;
                     nodeDict["label"] = core.getRelid(node) + "dev";
                     nodeDict["celltype"] = core.getAttribute(node, "celltype");
@@ -121,7 +126,7 @@ define([
                     if(self.isMetaTypeOf(sourceNode, self.META.InPort)){
                         if(self.isMetaTypeOf(sourceParent,self.META.LogicGate) || self.isMetaTypeOf(sourceParent, self.META.Input) ){
                             if(addedDict[core.getRelid(sourceParent)] != 0){
-                                toDict["port"] = "in" + addedDict[core.getRelid((sourceParent))];
+                                toDict["port"] = "in" + (addedDict[core.getRelid((sourceParent))] + 1);
                                 addedDict[core.getRelid(sourceParent)] = addedDict[core.getRelid(sourceParent)] + 1;
                             }else{
                                 toDict["port"] = "in1"
@@ -142,11 +147,11 @@ define([
                     }else{
                         if(self.isMetaTypeOf(destParent,self.META.LogicGate) || self.isMetaTypeOf(destParent, self.META.Input)){
                             if(addedDict[core.getRelid(destParent)] != 0){
-                                toDict["port"] = "in" + addedDict[core.getRelid((destParent))];
+                                toDict["port"] = "in" + (addedDict[core.getRelid((destParent))] + 1);
                                 addedDict[core.getRelid(destParent)] = addedDict[core.getRelid(destParent)] + 1;
                             }else{
                                 toDict["port"] = "in1";
-                                addedDict[core.getRelid(destParent)] = 2;
+                                addedDict[core.getRelid(destParent)] = 1;
                             }
                             fromDict["port"] = "out";
                         }else if(self.isMetaTypeOf(destParent, self.META.Output)){
@@ -168,15 +173,95 @@ define([
             return connectors;
 
         }
+        function checkForMoreInputs(nodes){
+            var path;
+            var devicesToFix = [];
+            for(path in nodes){
+                node = nodes[path];
+                if(addedDict[core.getRelid(node)] != null){
+                    if(addedDict[(core.getRelid(node))] > 2){
+                        devicesToFix.push(node);
+                    }
+                }
+
+            }
+            return devicesToFix;
+
+        }
+
+        function fixDevicesAndConnectors(nodes){
+            var devicesToFix = checkForMoreInputs(nodes);
+            var k = 0;
+            var numOfTotalDevices = devices.length;
+            var addedDevices = [];
+            while(k < devicesToFix.length){
+                var device = devicesToFix[k];
+                var deviceName = deviceNames[core.getRelid(device) + "dev"];
+                var numOfInputs = addedDict[core.getRelid(device)];
+                var numOfExtraGates = numOfInputs - 2;
+
+                //fix devices
+                i = 0;
+                while(i < numOfExtraGates){
+                    var newDict =  {};
+                    addedDevices.push(numOfTotalDevices + "dev");
+                    newDict["label"] = numOfTotalDevices + "dev";
+                    newDict["celltype"] = core.getAttribute(device, "celltype");
+                    allDevices[numOfTotalDevices + "dev"] = newDict;
+                    i = i +1;
+                    numOfTotalDevices = numOfTotalDevices + 1;
+                }
+
+                //fix connectors
+                var j = 0;
+                var i = 0;
+                while(i < allConnectors.length){
+                    var c = allConnectors[i];
+                    var toDict = c["to"];
+                    var fromDict = c["from"];
+                    if((toDict["id"] == deviceName) && (toDict["port"] != "in1") && (toDict["port"] != "in2")){
+                        toDict["id"] = addedDevices[j];
+                        toDict["port"] = "in1";
+                        newDict = {};
+                        newDict["name"] = addedDevices[j]+"c";
+                        var newToDict = {};
+                        newToDict["id"] = addedDevices[j];
+                        newToDict["port"] = "in2";
+                        var newFromDict = {};
+                        if(j == 0){
+                            newFromDict["id"] = deviceName;
+                            newFromDict["port"] = "out";
+                        }else{
+                            newFromDict["id"] = addedDevices[j-1];
+                            newFromDict["port"] = "out";
+                        }
+                        newDict["to"] = newToDict;
+                        newDict["from"] = newFromDict;
+                        allConnectors.push(newDict);
+                        j = j + 1;
+                    }
+                    if(c["name"] == core.getRelid(device) + "dev"){
+                        fromDict["id"] = addedDevices[addedDevices.length - 1];
+                    }
+
+                    i = i +1;
+
+                }
+
+                k = k + 1;
+            }
+        }
 
         this.loadNodeMap(activeNode)
             .then(function (nodes) {
 
                 //get all the components
-                var devices = getDevices(nodes);
-                var connectors = getConnectors(nodes);
-                digitalJSDict["devices"] = devices;
-                digitalJSDict["connectors"] = connectors;
+                allDevices = getDevices(nodes);
+                allConnectors = getConnectors(nodes);
+                fixDevicesAndConnectors(nodes);
+
+                digitalJSDict["devices"] = allDevices;
+                digitalJSDict["connectors"] = allConnectors;
                 digitalJSDict["subcircuits"] = {};
                 var jsonString = JSON.stringify(digitalJSDict);
 
