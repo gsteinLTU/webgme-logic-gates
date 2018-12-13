@@ -1,4 +1,6 @@
-# webgme-logic-gates
+# WebGME Logic Gates Design Studio
+Model Integrated Computing Fall 2018
+
 ## Installation
 First, install the webgme-logic-gates following:
 - [NodeJS](https://nodejs.org/en/) (v4.x.x recommended)
