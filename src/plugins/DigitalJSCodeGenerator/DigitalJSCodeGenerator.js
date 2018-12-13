@@ -61,7 +61,8 @@ define([
             artifact,
             self = this,
             digitalJSDict = {},
-            deviceNames = {};
+            deviceNames = {},
+             addedDict = {};
 
 
         function getDevices(nodes){
@@ -72,7 +73,7 @@ define([
             for(path in nodes){
                 node = nodes[path];
                 var nodeDict = {};
-
+                addedDict[core.getRelid(node)] = 0;
                 if(self.isMetaTypeOf(node, self.META.LogicGate)
                     || self.isMetaTypeOf(node, self.META.Input)
                     || self.isMetaTypeOf(node, self.META.Output)){
@@ -104,6 +105,7 @@ define([
             var connectors = [];
             var path;
             var numPorts = 0;
+
             for(path in nodes){
                 node = nodes[path];
                 var nodeDict = {};
@@ -117,16 +119,44 @@ define([
                     var sourceParent = core.getParent(sourceNode);
                     var destParent = core.getParent(destinationNode);
                     if(self.isMetaTypeOf(sourceNode, self.META.InPort)){
-                        fromDict["id"] = deviceNames[core.getRelid(sourceParent) + "dev"];
-                        fromDict["port"] = "out" + numPorts;
-                        toDict["id"] = deviceNames[core.getRelid(destParent) + "dev"];
-                        toDict["port"] = "in" + numPorts;
+                        if(self.isMetaTypeOf(sourceParent,self.META.LogicGate) || self.isMetaTypeOf(sourceParent, self.META.Input) ){
+                            if(addedDict[core.getRelid(sourceParent)] != 0){
+                                toDict["port"] = "in" + addedDict[core.getRelid((sourceParent))];
+                                addedDict[core.getRelid(sourceParent)] = addedDict[core.getRelid(sourceParent)] + 1;
+                            }else{
+                                toDict["port"] = "in1"
+                                addedDict[core.getRelid(sourceParent)] = 2
+                            }
+                            fromDict["port"] = "out";
+
+                        }else if(self.isMetaTypeOf(sourceParent, self.META.Output)){
+                            fromDict["port"] = "in";
+                            toDict["port"] = "out";
+
+                        }
+                        fromDict["id"] = deviceNames[core.getRelid(destParent) + "dev"];
+                       // fromDict["port"] = "out" + numPorts;
+                        toDict["id"] = deviceNames[core.getRelid(sourceParent) + "dev"];
+                       // toDict["port"] = "in" + numPorts;
                         nodeDict["name"] = core.getRelid(destParent) + "dev";
                     }else{
-                        toDict["id"] = deviceNames[core.getRelid(sourceParent) + "dev"];
-                        toDict["port"] = "out" + numPorts;
-                        fromDict["id"] = deviceNames[core.getRelid(destParent) + "dev"];
-                        fromDict["port"] = "in" + numPorts;
+                        if(self.isMetaTypeOf(destParent,self.META.LogicGate) || self.isMetaTypeOf(destParent, self.META.Input)){
+                            if(addedDict[core.getRelid(destParent)] != 0){
+                                toDict["port"] = "in" + addedDict[core.getRelid((destParent))];
+                                addedDict[core.getRelid(destParent)] = addedDict[core.getRelid(destParent)] + 1;
+                            }else{
+                                toDict["port"] = "in1";
+                                addedDict[core.getRelid(destParent)] = 2;
+                            }
+                            fromDict["port"] = "out";
+                        }else if(self.isMetaTypeOf(destParent, self.META.Output)){
+                            toDict["port"] = "in";
+                            fromDict["port"] = "out";
+                        }
+                        toDict["id"] = deviceNames[core.getRelid(destParent) + "dev"];
+                        //toDict["port"] = "out" + numPorts;
+                        fromDict["id"] = deviceNames[core.getRelid(sourceParent) + "dev"];
+                        //fromDict["port"] = "in" + numPorts;
                         nodeDict["name"] = core.getRelid(sourceParent) + "dev";
                     }
                     numPorts = numPorts + 1;
